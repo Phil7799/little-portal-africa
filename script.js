@@ -1,0 +1,1853 @@
+// Simplified Data Manager with Last Year Data Support
+class DataManager {
+    constructor() {
+        this.corporateAssociates = [
+            'carol.ngugi@little.africa',
+            'christine.nyiva@little.africa',
+            'david.miiri@little.africa',
+            'laura.kabaara@little.africa',
+            'lillian.lugano@little.africa',
+            'mary.matevwa@little.africa',
+            'wanjiru.kahuro@little.africa'
+        ];
+
+        this.loadData();
+    }
+
+    loadData() {
+        this.monthlyTargets = JSON.parse(localStorage.getItem('monthly_targets')) || this.getDefaultMonthlyTargets();
+        this.teamMonthlyTargets = JSON.parse(localStorage.getItem('team_monthly_targets')) || this.getDefaultTeamMonthlyTargets();
+        this.weeklyTargets = JSON.parse(localStorage.getItem('weekly_targets')) || this.getDefaultWeeklyTargets();
+        this.associateTargets = JSON.parse(localStorage.getItem('associate_targets')) || this.getDefaultAssociateTargets();
+
+        this.corporateOnboarded = JSON.parse(localStorage.getItem('corporate_onboarded')) || this.initializeEmptyAssociateData();
+        this.corporateRiding = JSON.parse(localStorage.getItem('corporate_riding')) || this.initializeEmptyAssociateData();
+        this.weeklyPerformance = JSON.parse(localStorage.getItem('weekly_performance')) || {};
+        this.lastYearPerformance = JSON.parse(localStorage.getItem('last_year_performance')) || {};
+        this.corporateWeeklyRevenue = JSON.parse(localStorage.getItem('corporate_weekly_revenue')) || {};
+        this.corporateAssociateWeeklyRevenue = JSON.parse(localStorage.getItem('corporate_associate_weekly_revenue')) || {};
+
+        this.calculateAggregates();
+    }
+
+    getDefaultMonthlyTargets() {
+        const totalAnnualRevenue = 196000000;
+        const totalMonthlyRevenue = totalAnnualRevenue / 12;
+        const totalAnnualOnboarded = 1008;
+        const totalMonthlyOnboarded = totalAnnualOnboarded / 12;
+
+        return {
+            revenue: Array(12).fill(totalMonthlyRevenue),
+            onboarded: Array(12).fill(totalMonthlyOnboarded)
+        };
+    }
+
+    getDefaultTeamMonthlyTargets() {
+        return [
+            1108315.46,
+            4070568.25,
+            7384069.91,
+            9342151.63,
+            13879589.29,
+            15015767.90,
+            15552607.70,
+            17834998.93,
+            21805249.83,
+            33336563.61,
+            29531776.47,
+            27138341.02
+        ];
+    }
+
+    getDefaultWeeklyTargets() {
+        return [
+            { week: 1, date: '2026-01-08', target: 31702.00837 },
+            { week: 2, date: '2026-01-15', target: 31702.00837 },
+            { week: 3, date: '2026-01-22', target: 31702.00837 },
+            { week: 4, date: '2026-01-29', target: 31702.00837 },
+            { week: 5, date: '2026-02-05', target: 145542.03658 },
+            { week: 6, date: '2026-02-12', target: 145542.03658 },
+            { week: 7, date: '2026-02-19', target: 145542.03658 },
+            { week: 8, date: '2026-02-26', target: 145542.03658 },
+            { week: 9, date: '2026-03-05', target: 264015.35977 },
+            { week: 10, date: '2026-03-12', target: 264015.35977 },
+            { week: 11, date: '2026-03-19', target: 264015.35977 },
+            { week: 12, date: '2026-03-26', target: 264015.35977 },
+            { week: 13, date: '2026-04-02', target: 267220.82445 },
+            { week: 14, date: '2026-04-09', target: 267220.82445 },
+            { week: 15, date: '2026-04-16', target: 267220.82445 },
+            { week: 16, date: '2026-04-23', target: 267220.82445 },
+            { week: 17, date: '2026-04-30', target: 267220.82445 },
+            { week: 18, date: '2026-05-07', target: 496260.86129 },
+            { week: 19, date: '2026-05-14', target: 496260.86129 },
+            { week: 20, date: '2026-05-21', target: 496260.86129 },
+            { week: 21, date: '2026-05-28', target: 496260.86129 },
+            { week: 22, date: '2026-06-04', target: 429507.68984 },
+            { week: 23, date: '2026-06-11', target: 429507.68984 },
+            { week: 24, date: '2026-06-18', target: 429507.68984 },
+            { week: 25, date: '2026-06-25', target: 429507.68984 },
+            { week: 26, date: '2026-07-02', target: 429507.68984 },
+            { week: 27, date: '2026-07-09', target: 556079.15978 },
+            { week: 28, date: '2026-07-16', target: 556079.15978 },
+            { week: 29, date: '2026-07-23', target: 556079.15978 },
+            { week: 30, date: '2026-07-30', target: 556079.15978 },
+            { week: 31, date: '2026-08-06', target: 510148.34238 },
+            { week: 32, date: '2026-08-13', target: 510148.34238 },
+            { week: 33, date: '2026-08-20', target: 510148.34238 },
+            { week: 34, date: '2026-08-27', target: 510148.34238 },
+            { week: 35, date: '2026-09-03', target: 510148.34238 },
+            { week: 36, date: '2026-09-10', target: 779640.64631 },
+            { week: 37, date: '2026-09-17', target: 779640.64631 },
+            { week: 38, date: '2026-09-24', target: 779640.64631 },
+            { week: 39, date: '2026-10-01', target: 779640.64631 },
+            { week: 40, date: '2026-10-08', target: 1191939.55833 },
+            { week: 41, date: '2026-10-15', target: 1191939.55833 },
+            { week: 42, date: '2026-10-22', target: 1191939.55833 },
+            { week: 43, date: '2026-10-29', target: 1191939.55833 },
+            { week: 44, date: '2026-11-05', target: 1055900.45926 },
+            { week: 45, date: '2026-11-12', target: 1055900.45926 },
+            { week: 46, date: '2026-11-19', target: 1055900.45926 },
+            { week: 47, date: '2026-11-26', target: 1055900.45926 },
+            { week: 48, date: '2026-12-03', target: 776259.07158 },
+            { week: 49, date: '2026-12-10', target: 776259.07158 },
+            { week: 50, date: '2026-12-17', target: 776259.07158 },
+            { week: 51, date: '2026-12-24', target: 776259.07158 },
+            { week: 52, date: '2026-12-31', target: 776259.07158 }
+        ];
+    }
+
+    getDefaultAssociateTargets() {
+        const targets = {};
+        const individualAnnualRevenue = 28000000;
+        const individualMonthlyRevenue = individualAnnualRevenue / 12;
+        const individualAnnualOnboarded = 144;
+        const individualMonthlyOnboarded = individualAnnualOnboarded / 12;
+
+        this.corporateAssociates.forEach(associate => {
+            targets[associate] = {
+                monthlyRevenue: Array(12).fill(individualMonthlyRevenue),
+                monthlyOnboarded: Array(12).fill(individualMonthlyOnboarded),
+                annualRevenue: individualAnnualRevenue,
+                annualOnboarded: individualAnnualOnboarded,
+                weeklyRevenue: this.getDefaultWeeklyTargets()
+            };
+        });
+        return targets;
+    }
+
+    initializeEmptyAssociateData() {
+        const data = {};
+        this.corporateAssociates.forEach(associate => {
+            data[associate] = Array(12).fill(0);
+        });
+        return data;
+    }
+
+    calculateAggregates() {
+        const associatesCount = (this.corporateAssociates || []).length || 1;
+        this.overviewData = {
+            totalRevenueTarget: this.monthlyTargets.revenue.reduce((a, b) => a + b, 0) * associatesCount,
+            totalOnboardedTarget: this.monthlyTargets.onboarded.reduce((a, b) => a + b, 0) * associatesCount,
+            totalRevenueActual: this.calculateTotalRevenueActual(),
+            totalOnboardedActual: this.calculateTotalOnboardedActual(),
+            weeklyPerformance: this.calculateWeeklyAggregates(),
+            associatePerformance: this.calculateAssociatePerformance(),
+            lastYearComparison: this.calculateLastYearComparison()
+        };
+    }
+
+    calculateTotalRevenueActual() {
+        let total = 0;
+        Object.values(this.weeklyPerformance).forEach(weekData => {
+            Object.values(weekData).forEach(revenue => {
+                total += revenue;
+            });
+        });
+        return total;
+    }
+
+    calculateTotalOnboardedActual() {
+        let total = 0;
+        this.corporateAssociates.forEach(associate => {
+            total += this.corporateOnboarded[associate].reduce((a, b) => a + b, 0);
+        });
+        return total;
+    }
+
+    calculateWeeklyAggregates() {
+        const aggregates = {};
+        this.weeklyTargets.forEach(week => {
+            aggregates[week.week] = {
+                target: week.target * 7,
+                actual: this.getWeeklyActual(week.week),
+                date: week.date,
+                lastYear: this.getLastYearWeeklyActual(week.week)
+            };
+        });
+        return aggregates;
+    }
+
+    getWeeklyActual(weekNumber) {
+        if (!this.weeklyPerformance[weekNumber]) return 0;
+        return Object.values(this.weeklyPerformance[weekNumber]).reduce((a, b) => a + b, 0);
+    }
+
+    getLastYearWeeklyActual(weekNumber) {
+        if (!this.lastYearPerformance[weekNumber]) return 0;
+        return Object.values(this.lastYearPerformance[weekNumber]).reduce((a, b) => a + b, 0);
+    }
+
+    calculateAssociatePerformance() {
+        const performance = {};
+        this.corporateAssociates.forEach(associate => {
+            const monthlyRevenue = this.calculateAssociateMonthlyRevenue(associate);
+            const monthlyOnboarded = this.corporateOnboarded[associate];
+            const weeklyRevenue = this.calculateAssociateWeeklyRevenue(associate);
+            const lastYearWeeklyRevenue = this.calculateAssociateLastYearWeeklyRevenue(associate);
+
+            performance[associate] = {
+                name: associate.split('@')[0].split('.').map(word =>
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' '),
+                monthlyRevenue,
+                monthlyOnboarded,
+                weeklyRevenue,
+                lastYearWeeklyRevenue,
+                totalRevenue: monthlyRevenue.reduce((a, b) => a + b, 0),
+                totalOnboarded: monthlyOnboarded.reduce((a, b) => a + b, 0),
+                revenueAchievement: this.calculateAchievement(monthlyRevenue, this.associateTargets[associate].monthlyRevenue),
+                onboardedAchievement: this.calculateAchievement(monthlyOnboarded, Array(12).fill(12)),
+                growthRate: this.calculateGrowthRate(associate)
+            };
+        });
+        return performance;
+    }
+
+    calculateAssociateMonthlyRevenue(associate) {
+        const monthlyRevenue = Array(12).fill(0);
+        Object.entries(this.weeklyPerformance).forEach(([week, data]) => {
+            if (data[associate]) {
+                const weekNumber = parseInt(week);
+                const month = this.getMonthFromWeek(weekNumber);
+                monthlyRevenue[month - 1] += data[associate];
+            }
+        });
+        return monthlyRevenue;
+    }
+
+    calculateAssociateWeeklyRevenue(associate) {
+        const weeklyRevenue = {};
+        Object.entries(this.weeklyPerformance).forEach(([week, data]) => {
+            weeklyRevenue[week] = data[associate] || 0;
+        });
+        return weeklyRevenue;
+    }
+
+    calculateAssociateLastYearWeeklyRevenue(associate) {
+        const weeklyRevenue = {};
+        Object.entries(this.lastYearPerformance).forEach(([week, data]) => {
+            weeklyRevenue[week] = data[associate] || 0;
+        });
+        return weeklyRevenue;
+    }
+
+    getMonthFromWeek(weekNumber) {
+        if (weekNumber <= 4) return 1;
+        else if (weekNumber <= 8) return 2;
+        else if (weekNumber <= 12) return 3;
+        else if (weekNumber <= 17) return 4;
+        else if (weekNumber <= 21) return 5;
+        else if (weekNumber <= 26) return 6;
+        else if (weekNumber <= 30) return 7;
+        else if (weekNumber <= 35) return 8;
+        else if (weekNumber <= 39) return 9;
+        else if (weekNumber <= 43) return 10;
+        else if (weekNumber <= 47) return 11;
+        else return 12;
+    }
+
+    calculateAchievement(actual, target) {
+        return actual.map((value, index) => {
+            const targetValue = target[index] || 1;
+            return targetValue > 0 ? (value / targetValue) * 100 : 0;
+        });
+    }
+
+    calculateGrowthRate(associate) {
+        const currentYearTotal = Object.values(this.weeklyPerformance).reduce((sum, weekData) => {
+            return sum + (weekData[associate] || 0);
+        }, 0);
+
+        const lastYearTotal = Object.values(this.lastYearPerformance).reduce((sum, weekData) => {
+            return sum + (weekData[associate] || 0);
+        }, 0);
+
+        if (lastYearTotal === 0) return 0;
+        return ((currentYearTotal - lastYearTotal) / lastYearTotal) * 100;
+    }
+
+    calculateLastYearComparison() {
+        const comparison = {
+            weekly: {},
+            monthly: Array(12).fill(0),
+            total: 0
+        };
+
+        Object.entries(this.lastYearPerformance).forEach(([week, data]) => {
+            const weekNumber = parseInt(week);
+            comparison.weekly[weekNumber] = Object.values(data).reduce((a, b) => a + b, 0);
+
+            const month = this.getMonthFromWeek(weekNumber);
+            comparison.monthly[month - 1] += comparison.weekly[weekNumber];
+        });
+
+        comparison.total = Object.values(comparison.weekly).reduce((a, b) => a + b, 0);
+        return comparison;
+    }
+
+    async processExcelData(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = async(e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    if (workbook.Sheets['Sheet1']) {
+                        const sheet1Data = XLSX.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 });
+                        this.processSheet1Data(sheet1Data);
+                    }
+
+                    if (workbook.Sheets['Sheet2']) {
+                        const sheet2Data = XLSX.utils.sheet_to_json(workbook.Sheets['Sheet2'], { header: 1 });
+                        this.processSheet2Data(sheet2Data);
+                    }
+
+                    if (workbook.Sheets['Sheet3']) {
+                        const sheet3Data = XLSX.utils.sheet_to_json(workbook.Sheets['Sheet3'], { header: 1 });
+                        this.processSheet3Data(sheet3Data);
+                    }
+
+                    this.calculateAggregates();
+                    this.saveData();
+
+                    resolve({ success: true, message: 'Data uploaded successfully' });
+                } catch (error) {
+                    reject({ success: false, message: 'Error processing file: ' + error.message });
+                }
+            };
+
+            reader.onerror = () => {
+                reject({ success: false, message: 'Error reading file' });
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    processSheet1Data(rows) {
+        rows.forEach((row, index) => {
+            if (index === 0) return;
+
+            if (row.length >= 4) {
+                const month = parseInt(row[0]) - 1;
+                const associate = row[1];
+                const onboarded = parseInt(row[2]) || 0;
+                const riding = parseInt(row[3]) || 0;
+
+                if (!this.corporateOnboarded[associate]) {
+                    this.corporateOnboarded[associate] = Array(12).fill(0);
+                    this.corporateRiding[associate] = Array(12).fill(0);
+                }
+
+                if (!this.corporateAssociates.includes(associate)) {
+                    this.corporateAssociates.push(associate);
+                }
+
+                this.corporateOnboarded[associate][month] = onboarded;
+                this.corporateRiding[associate][month] = riding;
+            }
+        });
+    }
+
+    processSheet2Data(rows) {
+        this.weeklyPerformance = {};
+        this.corporateWeeklyRevenue = {};
+        this.corporateAssociateWeeklyRevenue = {};
+
+        rows.forEach((row, index) => {
+            if (index === 0) return;
+
+            if (row.length >= 4) {
+                const corporateName = row[0];
+                const associate = row[1];
+                const revenue = parseFloat(String(row[2]).replace(/,/g, '')) || 0;
+                const week = row[3];
+
+                if (!this.corporateAssociates.includes(associate)) {
+                    this.corporateAssociates.push(associate);
+                    this.corporateOnboarded[associate] = Array(12).fill(0);
+                    this.corporateRiding[associate] = Array(12).fill(0);
+                }
+
+                const weekNumber = this.extractWeekNumber(week);
+
+                if (!this.weeklyPerformance[weekNumber]) {
+                    this.weeklyPerformance[weekNumber] = {};
+                }
+
+                if (!this.weeklyPerformance[weekNumber][associate]) {
+                    this.weeklyPerformance[weekNumber][associate] = 0;
+                }
+
+                this.weeklyPerformance[weekNumber][associate] += revenue;
+
+                if (!this.corporateWeeklyRevenue[corporateName]) {
+                    this.corporateWeeklyRevenue[corporateName] = {};
+                }
+
+                if (!this.corporateWeeklyRevenue[corporateName][weekNumber]) {
+                    this.corporateWeeklyRevenue[corporateName][weekNumber] = 0;
+                }
+
+                this.corporateWeeklyRevenue[corporateName][weekNumber] += revenue;
+
+                if (!this.corporateAssociateWeeklyRevenue[corporateName]) {
+                    this.corporateAssociateWeeklyRevenue[corporateName] = {};
+                }
+
+                if (!this.corporateAssociateWeeklyRevenue[corporateName][associate]) {
+                    this.corporateAssociateWeeklyRevenue[corporateName][associate] = {};
+                }
+
+                if (!this.corporateAssociateWeeklyRevenue[corporateName][associate][weekNumber]) {
+                    this.corporateAssociateWeeklyRevenue[corporateName][associate][weekNumber] = 0;
+                }
+
+                this.corporateAssociateWeeklyRevenue[corporateName][associate][weekNumber] += revenue;
+            }
+        });
+    }
+
+    processSheet3Data(rows) {
+        this.lastYearPerformance = {};
+
+        rows.forEach((row, index) => {
+            if (index === 0) return;
+
+            if (row.length >= 3) {
+                const associate = row[0];
+                const week = row[1];
+                const revenue = parseFloat(String(row[2]).replace(/,/g, '')) || 0;
+
+                if (!this.corporateAssociates.includes(associate)) {
+                    this.corporateAssociates.push(associate);
+                    this.corporateOnboarded[associate] = Array(12).fill(0);
+                    this.corporateRiding[associate] = Array(12).fill(0);
+                }
+
+                const weekNumber = this.extractWeekNumber(week);
+
+                if (!this.lastYearPerformance[weekNumber]) {
+                    this.lastYearPerformance[weekNumber] = {};
+                }
+
+                if (!this.lastYearPerformance[weekNumber][associate]) {
+                    this.lastYearPerformance[weekNumber][associate] = 0;
+                }
+
+                this.lastYearPerformance[weekNumber][associate] += revenue;
+            }
+        });
+    }
+
+    extractWeekNumber(weekString) {
+        if (!weekString) return 0;
+        const match = String(weekString).match(/WEEK\s+(\d+)/i);
+        return match ? parseInt(match[1]) : 0;
+    }
+
+    saveData() {
+        localStorage.setItem('monthly_targets', JSON.stringify(this.monthlyTargets));
+        localStorage.setItem('team_monthly_targets', JSON.stringify(this.teamMonthlyTargets));
+        localStorage.setItem('weekly_targets', JSON.stringify(this.weeklyTargets));
+        localStorage.setItem('associate_targets', JSON.stringify(this.associateTargets));
+        localStorage.setItem('corporate_onboarded', JSON.stringify(this.corporateOnboarded));
+        localStorage.setItem('corporate_riding', JSON.stringify(this.corporateRiding));
+        localStorage.setItem('weekly_performance', JSON.stringify(this.weeklyPerformance));
+        localStorage.setItem('last_year_performance', JSON.stringify(this.lastYearPerformance));
+        localStorage.setItem('corporate_weekly_revenue', JSON.stringify(this.corporateWeeklyRevenue));
+        localStorage.setItem('corporate_associate_weekly_revenue', JSON.stringify(this.corporateAssociateWeeklyRevenue));
+        localStorage.setItem('overview_data', JSON.stringify(this.overviewData));
+        localStorage.setItem('last_data_update', new Date().toISOString());
+    }
+}
+
+// Chart Manager (unchanged from original)
+class ChartManager {
+    constructor() {
+        this.charts = {};
+        this.colors = {
+            red: '#E63946',
+            green: '#2A9D8F',
+            blue: '#1D3557',
+            yellow: '#F4A261',
+            lightBlue: '#A8DADC',
+            lightRed: '#FFB4B4',
+            lightGreen: '#A8E6CF',
+            lightYellow: '#FFD166',
+            purple: '#9D4EDD'
+        };
+    }
+
+    initRevenueTrendChart(data) {
+        const ctx = document.getElementById('revenueTrendChart');
+        if (!ctx) return;
+
+        const canvasCtx = ctx.getContext('2d');
+
+        if (this.charts.revenueTrend) {
+            this.charts.revenueTrend.destroy();
+        }
+
+        this.charts.revenueTrend = new Chart(canvasCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                        label: 'Target Revenue',
+                        data: data.targets,
+                        borderColor: this.colors.blue,
+                        backgroundColor: 'rgba(29, 53, 87, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Actual Revenue',
+                        data: data.actuals,
+                        borderColor: this.colors.green,
+                        backgroundColor: 'rgba(42, 157, 143, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Last Year',
+                        data: data.lastYear,
+                        borderColor: this.colors.purple,
+                        backgroundColor: 'rgba(157, 78, 221, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: Ksh ${formatNumber(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Ksh ' + formatNumber(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    initAssociatePerformanceChart(associatesData) {
+        const ctx = document.getElementById('associatePerformanceChart');
+        if (!ctx) return;
+
+        const canvasCtx = ctx.getContext('2d');
+
+        const labels = Object.values(associatesData).map(a => a.name);
+        const revenue = Object.values(associatesData).map(a => a.totalRevenue);
+        const onboarded = Object.values(associatesData).map(a => a.totalOnboarded);
+
+        if (this.charts.associatePerformance) {
+            this.charts.associatePerformance.destroy();
+        }
+
+        this.charts.associatePerformance = new Chart(canvasCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                        label: 'Total Revenue (Ksh)',
+                        data: revenue,
+                        backgroundColor: this.colors.red,
+                        borderColor: this.colors.red,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Corporates Onboarded',
+                        data: onboarded,
+                        backgroundColor: this.colors.blue,
+                        borderColor: this.colors.blue,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Ksh ' + formatNumber(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    initWeeklyPerformanceChart(weeklyData) {
+        const ctx = document.getElementById('weeklyPerformanceChart');
+        if (!ctx) return;
+
+        const canvasCtx = ctx.getContext('2d');
+
+        const weeks = Object.keys(weeklyData).sort((a, b) => parseInt(a) - parseInt(b));
+        const targets = weeks.map(w => weeklyData[w].target);
+        const actuals = weeks.map(w => weeklyData[w].actual);
+        const lastYear = weeks.map(w => weeklyData[w].lastYear || 0);
+
+        if (this.charts.weeklyPerformance) {
+            this.charts.weeklyPerformance.destroy();
+        }
+
+        this.charts.weeklyPerformance = new Chart(canvasCtx, {
+            type: 'line',
+            data: {
+                labels: weeks.map(w => `Week ${w}`),
+                datasets: [{
+                        label: 'Target',
+                        data: targets,
+                        borderColor: this.colors.blue,
+                        backgroundColor: 'rgba(29, 53, 87, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Current Year',
+                        data: actuals,
+                        borderColor: this.colors.green,
+                        backgroundColor: 'rgba(42, 157, 143, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Last Year',
+                        data: lastYear,
+                        borderColor: this.colors.purple,
+                        backgroundColor: 'rgba(157, 78, 221, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Ksh ' + formatNumber(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    initYearComparisonChart(currentYearData, lastYearData) {
+        const ctx = document.getElementById('yearComparisonChart');
+        if (!ctx) return;
+
+        const canvasCtx = ctx.getContext('2d');
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        if (this.charts.yearComparison) {
+            this.charts.yearComparison.destroy();
+        }
+
+        this.charts.yearComparison = new Chart(canvasCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                        label: 'Current Year',
+                        data: currentYearData,
+                        borderColor: this.colors.green,
+                        backgroundColor: 'rgba(42, 157, 143, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Last Year',
+                        data: lastYearData,
+                        borderColor: this.colors.purple,
+                        backgroundColor: 'rgba(157, 78, 221, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: Ksh ${formatNumber(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Ksh ' + formatNumber(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Initialize Managers
+const dataManager = new DataManager();
+const chartManager = new ChartManager();
+
+// Helper Functions
+function formatNumber(num) {
+    if (num === undefined || num === null) return '0';
+
+    const numValue = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num;
+
+    if (numValue >= 1000000000) {
+        return (numValue / 1000000000).toFixed(2) + 'B';
+    } else if (numValue >= 1000000) {
+        return (numValue / 1000000).toFixed(2) + 'M';
+    } else if (numValue >= 1000) {
+        return (numValue / 1000).toFixed(1) + 'K';
+    }
+    return numValue.toFixed(2);
+}
+
+function formatCurrency(num) {
+    const numValue = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num;
+
+    if (isNaN(numValue)) return 'Ksh 0.00';
+
+    return new Intl.NumberFormat('en-KE', {
+        style: 'currency',
+        currency: 'KES',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(numValue);
+}
+
+// Dashboard Initialization
+function initDashboard() {
+    // Set current date
+    const currentDateElement = document.getElementById('currentDate');
+    if (currentDateElement) {
+        currentDateElement.textContent = new Date().toLocaleDateString('en-KE', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Load and display data
+    loadOverviewData();
+    loadCharts();
+    loadTables();
+
+    // Initialize filters
+    initFilters();
+    
+    // Apply default filters
+    applyFilters();
+}
+
+function loadTables() {
+    updateAssociateTable('all', 'all');
+    updateWeeklyTable('all', 'all');
+}
+
+function loadOverviewData() {
+    const lastUpdatedElement = document.getElementById('lastUpdated');
+    if (lastUpdatedElement) {
+        const lastUpdate = localStorage.getItem('last_data_update');
+        if (lastUpdate) {
+            const date = new Date(lastUpdate);
+            lastUpdatedElement.textContent = date.toLocaleString('en-KE', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        } else {
+            lastUpdatedElement.textContent = 'Never';
+        }
+    }
+}
+
+function loadCharts() {
+    const monthlyData = getFilteredMonthlyData('all', 'all');
+    chartManager.initRevenueTrendChart(monthlyData);
+    chartManager.initAssociatePerformanceChart(dataManager.overviewData.associatePerformance);
+    chartManager.initWeeklyPerformanceChart(dataManager.overviewData.weeklyPerformance);
+
+    const yearComparisonCtx = document.getElementById('yearComparisonChart');
+    if (yearComparisonCtx) {
+        const currentYearMonthly = dataManager.calculateMonthlyActuals();
+        const lastYearMonthly = dataManager.overviewData.lastYearComparison?.monthly || Array(12).fill(0);
+        chartManager.initYearComparisonChart(currentYearMonthly, lastYearMonthly);
+    }
+}
+
+function calculateMonthlyActuals() {
+    const monthlyActuals = Array(12).fill(0);
+    Object.entries(dataManager.weeklyPerformance).forEach(([week, data]) => {
+        const month = dataManager.getMonthFromWeek(parseInt(week));
+        Object.values(data).forEach(revenue => {
+            monthlyActuals[month - 1] += revenue;
+        });
+    });
+    return monthlyActuals;
+}
+
+DataManager.prototype.calculateMonthlyActuals = calculateMonthlyActuals;
+
+function initFilters() {
+    const associateFilter = document.getElementById('associateFilter');
+    if (associateFilter) {
+        associateFilter.innerHTML = '<option value="all">All Associates</option>';
+
+        dataManager.corporateAssociates.forEach(associate => {
+            const name = associate.split('@')[0].split('.').map(word =>
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            associateFilter.innerHTML += `<option value="${associate}">${name}</option>`;
+        });
+
+        associateFilter.addEventListener('change', applyFilters);
+    }
+
+    const monthFilter = document.getElementById('monthFilter');
+    if (monthFilter) {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        monthFilter.innerHTML = '<option value="all">All Months</option>';
+        months.forEach((month, index) => {
+            monthFilter.innerHTML += `<option value="${index}">${month}</option>`;
+        });
+
+        monthFilter.addEventListener('change', applyFilters);
+    }
+
+    const weekFilter = document.getElementById('weekFilter');
+    if (weekFilter) {
+        weekFilter.innerHTML = '<option value="all">All Weeks</option>';
+
+        const weeks = Object.keys(dataManager.overviewData.weeklyPerformance)
+            .sort((a, b) => parseInt(a) - parseInt(b));
+
+        weeks.forEach(weekNum => {
+            const weekData = dataManager.overviewData.weeklyPerformance[weekNum];
+            weekFilter.innerHTML += `<option value="${weekNum}">Week ${weekNum} (${weekData.date})</option>`;
+        });
+
+        weekFilter.addEventListener('change', applyFilters);
+    }
+}
+
+function applyFilters() {
+    const associate = document.getElementById('associateFilter')?.value || 'all';
+    const month = document.getElementById('monthFilter')?.value || 'all';
+    const week = document.getElementById('weekFilter')?.value || 'all';
+
+    updateOverviewKPIs(associate, month);
+    updateChartsWithFilters(associate, month);
+    updateAssociateTable(associate, month);
+    updateWeeklyTable(associate, week);
+    updateAnalyticsPage(associate, month);
+}
+
+function updateOverviewKPIs(associateFilter = 'all', monthFilter = 'all') {
+    let totalRevenueTarget = 0;
+    let totalRevenueActual = 0;
+    let totalOnboardedTarget = 0;
+    let totalOnboardedActual = 0;
+
+    if (associateFilter === 'all') {
+        if (monthFilter === 'all') {
+            totalRevenueTarget = dataManager.teamMonthlyTargets.reduce((a, b) => a + b, 0);
+            totalOnboardedTarget = 1008;
+
+            Object.entries(dataManager.overviewData.associatePerformance).forEach(([email, data]) => {
+                totalRevenueActual += data.totalRevenue;
+                totalOnboardedActual += data.totalOnboarded;
+            });
+        } else {
+            const month = parseInt(monthFilter);
+            totalRevenueTarget = dataManager.teamMonthlyTargets[month] || 0;
+            totalOnboardedTarget = 84;
+
+            Object.entries(dataManager.overviewData.associatePerformance).forEach(([email, data]) => {
+                totalRevenueActual += data.monthlyRevenue[month] || 0;
+                totalOnboardedActual += data.monthlyOnboarded[month] || 0;
+            });
+        }
+    } else {
+        const data = dataManager.overviewData.associatePerformance[associateFilter];
+        if (data) {
+            if (monthFilter === 'all') {
+                totalRevenueTarget = 28000000;
+                totalOnboardedTarget = 144;
+                totalRevenueActual = data.totalRevenue;
+                totalOnboardedActual = data.totalOnboarded;
+            } else {
+                const month = parseInt(monthFilter);
+                totalRevenueTarget = dataManager.associateTargets[associateFilter].monthlyRevenue[month] || 0;
+                totalOnboardedTarget = 12;
+                totalRevenueActual = data.monthlyRevenue[month] || 0;
+                totalOnboardedActual = data.monthlyOnboarded[month] || 0;
+            }
+        }
+    }
+
+    const totalRevenueTargetElement = document.getElementById('totalRevenueTarget');
+    const totalRevenueActualElement = document.getElementById('totalRevenueActual');
+    const revenueAchievementElement = document.getElementById('revenueAchievement');
+    const totalOnboardedTargetElement = document.getElementById('totalOnboardedTarget');
+    const totalOnboardedActualElement = document.getElementById('totalOnboardedActual');
+    const onboardedAchievementElement = document.getElementById('onboardedAchievement');
+
+    if (totalRevenueTargetElement) totalRevenueTargetElement.textContent = formatCurrency(totalRevenueTarget);
+    if (totalRevenueActualElement) totalRevenueActualElement.textContent = formatCurrency(totalRevenueActual);
+    if (totalOnboardedTargetElement) totalOnboardedTargetElement.textContent = totalOnboardedTarget;
+    if (totalOnboardedActualElement) totalOnboardedActualElement.textContent = totalOnboardedActual;
+
+    const revenueAchievement = (totalRevenueActual / totalRevenueTarget) * 100 || 0;
+    if (revenueAchievementElement) {
+        revenueAchievementElement.textContent = revenueAchievement.toFixed(1) + '%';
+        revenueAchievementElement.className = revenueAchievement >= 100 ? 'trend-positive' : 'trend-negative';
+    }
+
+    const onboardedAchievement = (totalOnboardedActual / totalOnboardedTarget) * 100 || 0;
+    if (onboardedAchievementElement) {
+        onboardedAchievementElement.textContent = onboardedAchievement.toFixed(1) + '%';
+        onboardedAchievementElement.className = onboardedAchievement >= 100 ? 'trend-positive' : 'trend-negative';
+    }
+}
+
+function updateChartsWithFilters(associateFilter = 'all', monthFilter = 'all') {
+    const monthlyData = getFilteredMonthlyData(associateFilter, monthFilter);
+    chartManager.initRevenueTrendChart(monthlyData);
+
+    const associatePerformanceData = associateFilter === 'all' ?
+        dataManager.overviewData.associatePerformance : {
+            [associateFilter]: dataManager.overviewData.associatePerformance[associateFilter]
+        };
+    chartManager.initAssociatePerformanceChart(associatePerformanceData);
+
+    const weeklyData = getFilteredWeeklyData(associateFilter);
+    chartManager.initWeeklyPerformanceChart(weeklyData);
+
+    const currentYearMonthly = getFilteredCurrentYearMonthly(associateFilter);
+    const lastYearMonthly = getFilteredLastYearMonthly(associateFilter);
+    chartManager.initYearComparisonChart(currentYearMonthly, lastYearMonthly);
+}
+
+function getFilteredMonthlyData(associateFilter = 'all', monthFilter = 'all') {
+    if (associateFilter === 'all') {
+        return {
+            targets: dataManager.teamMonthlyTargets || [],
+            actuals: dataManager.calculateMonthlyActuals(),
+            lastYear: dataManager.overviewData.lastYearComparison?.monthly || Array(12).fill(0)
+        };
+    } else {
+        const data = dataManager.overviewData.associatePerformance[associateFilter];
+        return {
+            targets: dataManager.associateTargets[associateFilter].monthlyRevenue,
+            actuals: data ? data.monthlyRevenue : Array(12).fill(0),
+            lastYear: data ? Object.values(data.lastYearWeeklyRevenue || {})
+                .reduce((monthly, revenue, index) => {
+                    const month = dataManager.getMonthFromWeek(parseInt(index) + 1);
+                    monthly[month - 1] = (monthly[month - 1] || 0) + revenue;
+                    return monthly;
+                }, Array(12).fill(0)) : Array(12).fill(0)
+        };
+    }
+}
+
+function getFilteredWeeklyData(associateFilter = 'all') {
+    const filtered = {};
+    Object.entries(dataManager.overviewData.weeklyPerformance).forEach(([week, data]) => {
+        if (associateFilter === 'all') {
+            filtered[week] = data;
+        } else {
+            const revenue = dataManager.weeklyPerformance[week]?.[associateFilter] || 0;
+            const lastYearRevenue = dataManager.lastYearPerformance[week]?.[associateFilter] || 0;
+            const weekTargets = dataManager.weeklyTargets.find(w => w.week == week);
+            filtered[week] = {
+                target: weekTargets ? weekTargets.target : 0,
+                actual: revenue,
+                date: data.date,
+                lastYear: lastYearRevenue
+            };
+        }
+    });
+    return filtered;
+}
+
+function getFilteredCurrentYearMonthly(associateFilter = 'all') {
+    if (associateFilter === 'all') {
+        return dataManager.calculateMonthlyActuals();
+    } else {
+        const data = dataManager.overviewData.associatePerformance[associateFilter];
+        return data ? data.monthlyRevenue : Array(12).fill(0);
+    }
+}
+
+function getFilteredLastYearMonthly(associateFilter = 'all') {
+    if (associateFilter === 'all') {
+        return dataManager.overviewData.lastYearComparison?.monthly || Array(12).fill(0);
+    } else {
+        const data = dataManager.overviewData.associatePerformance[associateFilter];
+        if (!data) return Array(12).fill(0);
+
+        const monthly = Array(12).fill(0);
+        Object.entries(data.lastYearWeeklyRevenue || {}).forEach(([week, revenue]) => {
+            const month = dataManager.getMonthFromWeek(parseInt(week));
+            monthly[month - 1] += revenue;
+        });
+        return monthly;
+    }
+}
+
+function updateAnalyticsPage(associateFilter = 'all', monthFilter = 'all') {
+    updateRevenueTargetsTable(associateFilter, monthFilter);
+    updateCorporateWeeklyTable(associateFilter, monthFilter);
+}
+
+function updateRevenueTargetsTable(associateFilter = 'all', monthFilter = 'all') {
+    const tbody = document.getElementById('revenueTargetsTableBody');
+    if (!tbody) return;
+
+    let html = '';
+    
+    const teamMonthlyTargets = [
+        1108315.46,
+        4070568.25,
+        7384069.91,
+        9342151.63,
+        13879589.29,
+        15015767.90,
+        15552607.70,
+        17834998.93,
+        21805249.83,
+        33336563.61,
+        29531776.47,
+        27138341.02
+    ];
+
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    for (let month = 0; month < 12; month++) {
+        if (monthFilter !== 'all' && parseInt(monthFilter) !== month) continue;
+
+        const revenueTarget = teamMonthlyTargets[month] || 0;
+        
+        let revenueActual = 0;
+        let onboardingActual = 0;
+        
+        Object.entries(dataManager.overviewData.associatePerformance || {}).forEach(([email, data]) => {
+            revenueActual += data.monthlyRevenue[month] || 0;
+            onboardingActual += data.monthlyOnboarded[month] || 0;
+        });
+
+        const lastYearRevenue = dataManager.overviewData.lastYearComparison?.monthly?.[month] || 0;
+        const onboardingTarget = 84;
+        const growth = lastYearRevenue > 0 ? ((revenueActual - lastYearRevenue) / lastYearRevenue) * 100 : 0;
+        const revenueGap = revenueTarget - revenueActual;
+        const onboardingGap = onboardingTarget - onboardingActual;
+
+        let revenueGapText = formatCurrency(Math.abs(revenueGap));
+        let revenueGapClass = 'trend-positive';
+
+        if (revenueGap > 0) {
+            revenueGapText += ' deficit';
+            revenueGapClass = 'trend-negative';
+        } else if (revenueGap < 0) {
+            revenueGapText += ' surplus';
+        }
+
+        let onboardingGapText = Math.abs(onboardingGap);
+        let onboardingGapClass = 'trend-positive';
+
+        if (onboardingGap > 0) {
+            onboardingGapText += ' deficit';
+            onboardingGapClass = 'trend-negative';
+        } else if (onboardingGap < 0) {
+            onboardingGapText += ' surplus';
+        }
+
+        html += `
+            <tr>
+                <td>${months[month]}</td>
+                <td>${formatCurrency(revenueTarget)}</td>
+                <td>${formatCurrency(revenueActual)}</td>
+                <td>${formatCurrency(lastYearRevenue)}</td>
+                <td class="${growth >= 0 ? 'trend-positive' : 'trend-negative'}">
+                    ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%
+                </td>
+                <td>${onboardingTarget.toFixed(0)}</td>
+                <td>${onboardingActual}</td>
+                <td class="${revenueGapClass}">
+                    ${revenueGapText}
+                </td>
+                <td class="${onboardingGapClass}">
+                    ${onboardingGapText}
+                </td>
+            </tr>
+        `;
+    }
+
+    tbody.innerHTML = html || '<tr><td colspan="9" class="text-center">No data available</td></tr>';
+}
+
+function updateCorporateWeeklyTable(associateFilter = 'all', monthFilter = 'all') {
+    const thead = document.getElementById('corporateWeeklyTableHead');
+    const tbody = document.getElementById('corporateWeeklyTableBody');
+    
+    if (!thead || !tbody) return;
+    
+    const allWeeks = Object.keys(dataManager.overviewData.weeklyPerformance || {})
+        .map(w => parseInt(w))
+        .sort((a, b) => a - b);
+    
+    if (allWeeks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="99" class="text-center">No data available</td></tr>';
+        return;
+    }
+    
+    let weeksToDisplay = allWeeks;
+    if (monthFilter !== 'all') {
+        const selectedMonth = parseInt(monthFilter);
+        weeksToDisplay = allWeeks.filter(week => {
+            const weekMonth = dataManager.getMonthFromWeek(week);
+            return weekMonth === selectedMonth + 1;
+        });
+    }
+    
+    let headerHtml = '<tr><th>Corporate</th>';
+    weeksToDisplay.forEach(week => {
+        headerHtml += `<th>WEEK ${week}</th>`;
+    });
+    headerHtml += '</tr>';
+    thead.innerHTML = headerHtml;
+    
+    const corporateWeeklyRevenue = dataManager.corporateWeeklyRevenue || {};
+    const corporateAssociateWeeklyRevenue = dataManager.corporateAssociateWeeklyRevenue || {};
+    
+    if (Object.keys(corporateWeeklyRevenue).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="99" class="text-center">No corporate data available. Please upload data first.</td></tr>';
+        return;
+    }
+    
+    let bodyHtml = '';
+    
+    if (associateFilter === 'all') {
+        Object.entries(corporateWeeklyRevenue).forEach(([corporateName, weeklyData]) => {
+            bodyHtml += `<tr><td><strong>${corporateName}</strong></td>`;
+            
+            weeksToDisplay.forEach(week => {
+                const revenue = weeklyData[week] || 0;
+                bodyHtml += `<td>${formatCurrency(revenue)}</td>`;
+            });
+            
+            bodyHtml += '</tr>';
+        });
+    } else {
+        Object.entries(corporateAssociateWeeklyRevenue).forEach(([corporateName, associateData]) => {
+            if (associateData[associateFilter]) {
+                bodyHtml += `<tr><td><strong>${corporateName}</strong> (${associateFilter})</td>`;
+                
+                weeksToDisplay.forEach(week => {
+                    const revenue = associateData[associateFilter][week] || 0;
+                    bodyHtml += `<td>${formatCurrency(revenue)}</td>`;
+                });
+                
+                bodyHtml += '</tr>';
+            }
+        });
+    }
+    
+    tbody.innerHTML = bodyHtml || '<tr><td colspan="99" class="text-center">No data available</td></tr>';
+}
+
+function updateAssociateTable(associateFilter = 'all', monthFilter = 'all') {
+    const tbody = document.getElementById('associateTableBody');
+    if (!tbody) return;
+
+    let html = '';
+
+    Object.entries(dataManager.overviewData.associatePerformance).forEach(([email, data]) => {
+        if (associateFilter !== 'all' && email !== associateFilter) return;
+
+        let revenueAchievement, onboardedAchievement;
+
+        if (monthFilter !== 'all') {
+            const month = parseInt(monthFilter);
+            revenueAchievement = data.revenueAchievement[month] || 0;
+            onboardedAchievement = data.onboardedAchievement[month] || 0;
+        } else {
+            revenueAchievement = data.revenueAchievement.reduce((a, b) => a + b, 0) / data.revenueAchievement.length;
+            onboardedAchievement = data.onboardedAchievement.reduce((a, b) => a + b, 0) / data.onboardedAchievement.length;
+        }
+
+        const currentYearTotal = data.totalRevenue;
+        const lastYearTotal = Object.values(data.lastYearWeeklyRevenue || {}).reduce((a, b) => a + b, 0);
+        const growth = lastYearTotal > 0 ? ((currentYearTotal - lastYearTotal) / lastYearTotal) * 100 : 0;
+
+        html += `
+            <tr>
+                <td>${data.name}</td>
+                <td>${formatCurrency(data.totalRevenue)}</td>
+                <td>${data.totalOnboarded}</td>
+                <td>
+                    <div class="progress-cell">
+                        <span>${revenueAchievement.toFixed(1)}%</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${revenueAchievement >= 100 ? 'green' : revenueAchievement >= 70 ? 'yellow' : 'red'}" 
+                                 style="width: ${Math.min(revenueAchievement, 100)}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="progress-cell">
+                        <span>${onboardedAchievement.toFixed(1)}%</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${onboardedAchievement >= 100 ? 'green' : onboardedAchievement >= 70 ? 'yellow' : 'red'}" 
+                                 style="width: ${Math.min(onboardedAchievement, 100)}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge ${revenueAchievement >= 100 ? 'badge-success' : revenueAchievement >= 70 ? 'badge-warning' : 'badge-danger'}">
+                        ${revenueAchievement >= 100 ? 'On Target' : revenueAchievement >= 70 ? 'Needs Attention' : 'At Risk'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="6" class="text-center">No data available</td></tr>';
+}
+
+function updateWeeklyTable(associateFilter = 'all', weekFilter = 'all') {
+    const tbody = document.getElementById('weeklyTableBody');
+    if (!tbody) return;
+
+    let html = '';
+
+    const weeks = weekFilter === 'all' ?
+        Object.keys(dataManager.overviewData.weeklyPerformance).sort((a, b) => parseInt(a) - parseInt(b)) : [weekFilter];
+
+    weeks.forEach(weekNumber => {
+        const weekData = dataManager.overviewData.weeklyPerformance[weekNumber];
+        if (!weekData) return;
+
+        const weekTargets = dataManager.weeklyTargets.find(w => w.week == weekNumber);
+
+        dataManager.corporateAssociates.forEach(associate => {
+            if (associateFilter !== 'all' && associate !== associateFilter) return;
+
+            const revenue = dataManager.weeklyPerformance[weekNumber]?.[associate] || 0;
+            const lastYearRevenue = dataManager.lastYearPerformance[weekNumber]?.[associate] || 0;
+            const target = weekTargets ? weekTargets.target : 0;
+            const achievement = target > 0 ? (revenue / target) * 100 : 0;
+            const growth = lastYearRevenue > 0 ? ((revenue - lastYearRevenue) / lastYearRevenue) * 100 : 0;
+
+            const name = associate.split('@')[0].split('.').map(word =>
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+
+            html += `
+                <tr>
+                    <td>Week ${weekNumber}</td>
+                    <td>${weekData.date}</td>
+                    <td>${name}</td>
+                    <td>${formatCurrency(target)}</td>
+                    <td>${formatCurrency(revenue)}</td>
+                    <td>
+                        <div class="progress-cell">
+                            <span>${achievement.toFixed(1)}%</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${achievement >= 100 ? 'green' : achievement >= 70 ? 'yellow' : 'red'}" 
+                                     style="width: ${Math.min(achievement, 100)}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="${growth >= 0 ? 'trend-positive' : 'trend-negative'}">
+                        ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%
+                    </td>
+                </tr>
+            `;
+        });
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">No data available</td></tr>';
+}
+
+// Upload Functions
+async function handleFileUpload(file) {
+    try {
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        if (progressContainer && progressBar && progressText) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Processing file...';
+        }
+
+        const result = await dataManager.processExcelData(file);
+
+        if (result.success) {
+            if (progressBar && progressText) {
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Data processed successfully!';
+            }
+
+            setTimeout(() => {
+                if (progressContainer) {
+                    progressContainer.style.display = 'none';
+                }
+                showMessage(result.message, 'success');
+            }, 1000);
+
+            return result;
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        return { success: false, message: 'Error: ' + error.message };
+    }
+}
+
+// Export Functions
+function exportToCSV() {
+    const data = [];
+
+    data.push(['Corporate Performance Report', 'Generated on', new Date().toLocaleString()]);
+    data.push([]);
+    data.push(['OVERVIEW']);
+    data.push(['Total Revenue Target', formatCurrency(dataManager.overviewData.totalRevenueTarget)]);
+    data.push(['Total Revenue Actual', formatCurrency(dataManager.overviewData.totalRevenueActual)]);
+    data.push(['Total Onboarded Target', dataManager.overviewData.totalOnboardedTarget]);
+    data.push(['Total Onboarded Actual', dataManager.overviewData.totalOnboardedActual]);
+    data.push(['Last Year Total Revenue', formatCurrency(dataManager.overviewData.lastYearComparison?.total || 0)]);
+    data.push([]);
+
+    data.push(['ASSOCIATE PERFORMANCE']);
+    data.push(['Name', 'Total Revenue', 'Last Year Revenue', 'Growth %', 'Total Onboarded', 'Revenue Achievement %', 'Onboarded Achievement %', 'Status']);
+
+    Object.values(dataManager.overviewData.associatePerformance).forEach(associate => {
+        const revenueAchievement = associate.revenueAchievement.reduce((a, b) => a + b, 0) / associate.revenueAchievement.length;
+        const onboardedAchievement = associate.onboardedAchievement.reduce((a, b) => a + b, 0) / associate.onboardedAchievement.length;
+        const lastYearTotal = Object.values(associate.lastYearWeeklyRevenue || {}).reduce((a, b) => a + b, 0);
+        const growth = lastYearTotal > 0 ? ((associate.totalRevenue - lastYearTotal) / lastYearTotal) * 100 : 0;
+        const status = revenueAchievement >= 100 ? 'On Target' : revenueAchievement >= 70 ? 'Needs Attention' : 'At Risk';
+
+        data.push([
+            associate.name,
+            associate.totalRevenue,
+            lastYearTotal,
+            growth.toFixed(2) + '%',
+            associate.totalOnboarded,
+            revenueAchievement.toFixed(2) + '%',
+            onboardedAchievement.toFixed(2) + '%',
+            status
+        ]);
+    });
+
+    const csvContent = data.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sales_report_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Event Listeners and Initialization
+function initializeApp() {
+    if (window.location.pathname.includes('dashboard.html')) {
+        initDashboard();
+    } else if (window.location.pathname.includes('upload.html')) {
+        initUploadPage();
+    }
+}
+
+function initUploadPage() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+
+    if (uploadArea && fileInput) {
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelection();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelection);
+    }
+
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!fileInput || !fileInput.files.length) {
+                showMessage('Please select a file', 'error');
+                return;
+            }
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const originalText = uploadBtn?.innerHTML;
+
+            if (uploadBtn) {
+                uploadBtn.innerHTML = '<span class="loading"></span> Uploading...';
+                uploadBtn.disabled = true;
+            }
+
+            try {
+                const result = await handleFileUpload(fileInput.files[0]);
+
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    showMessage(result.message, 'error');
+                    if (uploadBtn) {
+                        uploadBtn.innerHTML = originalText;
+                        uploadBtn.disabled = false;
+                    }
+                }
+            } catch (error) {
+                showMessage('Error during upload: ' + error.message, 'error');
+                if (uploadBtn) {
+                    uploadBtn.innerHTML = originalText;
+                    uploadBtn.disabled = false;
+                }
+            }
+        });
+    }
+}
+
+function handleFileSelection() {
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    if (fileInput && fileInput.files.length) {
+        const file = fileInput.files[0];
+        if (fileName) {
+            fileName.textContent = file.name;
+        }
+        if (uploadBtn) {
+            uploadBtn.disabled = false;
+        }
+
+        previewFile(file);
+    }
+}
+
+async function previewFile(file) {
+    try {
+        const reader = new FileReader();
+        const fileData = await new Promise((resolve, reject) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+
+        const data = new Uint8Array(fileData);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const previewContainer = document.getElementById('uploadPreview');
+
+        if (!previewContainer) return;
+
+        let previewHTML = '<h4>File Preview (First 5 rows of each sheet):</h4>';
+
+        const sheet1 = workbook.Sheets['Sheet1'];
+        if (sheet1) {
+            const rows = XLSX.utils.sheet_to_json(sheet1, { header: 1 }).slice(0, 6);
+            previewHTML += '<h5>Sheet1 - Corporate Onboarding</h5>';
+            previewHTML += '<table class="preview-table"><thead><tr>';
+
+            if (rows[0]) {
+                rows[0].forEach(cell => {
+                    previewHTML += `<th>${cell || ''}</th>`;
+                });
+                previewHTML += '</tr></thead><tbody>';
+
+                rows.slice(1).forEach(row => {
+                    previewHTML += '<tr>';
+                    row.forEach(cell => {
+                        previewHTML += `<td>${cell || ''}</td>`;
+                    });
+                    previewHTML += '</tr>';
+                });
+            }
+            previewHTML += '</tbody></table>';
+        }
+
+        const sheet2 = workbook.Sheets['Sheet2'];
+        if (sheet2) {
+            const rows = XLSX.utils.sheet_to_json(sheet2, { header: 1 }).slice(0, 6);
+            previewHTML += '<h5>Sheet2 - Weekly Performance</h5>';
+            previewHTML += '<table class="preview-table"><thead><tr>';
+
+            if (rows[0]) {
+                rows[0].forEach(cell => {
+                    previewHTML += `<th>${cell || ''}</th>`;
+                });
+                previewHTML += '</tr></thead><tbody>';
+
+                rows.slice(1).forEach(row => {
+                    previewHTML += '<tr>';
+                    row.forEach(cell => {
+                        previewHTML += `<td>${cell || ''}</td>`;
+                    });
+                    previewHTML += '</tr>';
+                });
+            }
+            previewHTML += '</tbody></table>';
+        }
+
+        const sheet3 = workbook.Sheets['Sheet3'];
+        if (sheet3) {
+            const rows = XLSX.utils.sheet_to_json(sheet3, { header: 1 }).slice(0, 6);
+            previewHTML += '<h5>Sheet3 - Last Year Performance</h5>';
+            previewHTML += '<table class="preview-table"><thead><tr>';
+
+            if (rows[0]) {
+                rows[0].forEach(cell => {
+                    previewHTML += `<th>${cell || ''}</th>`;
+                });
+                previewHTML += '</tr></thead><tbody>';
+
+                rows.slice(1).forEach(row => {
+                    previewHTML += '<tr>';
+                    row.forEach(cell => {
+                        previewHTML += `<td>${cell || ''}</td>`;
+                    });
+                    previewHTML += '</tr>';
+                });
+            }
+            previewHTML += '</tbody></table>';
+        }
+
+        previewContainer.innerHTML = previewHTML;
+    } catch (error) {
+        console.error('Preview error:', error);
+    }
+}
+
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    if (!messageDiv) return;
+
+    messageDiv.textContent = message;
+    messageDiv.className = `message ${type}`;
+
+    setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = 'message';
+    }, 5000);
+}
+
+// Global functions
+window.applyFilters = applyFilters;
+window.exportToCSV = exportToCSV;
+window.updateAnalyticsPage = updateAnalyticsPage;
+window.updateRevenueTargetsTable = updateRevenueTargetsTable;
+window.updateCorporateWeeklyTable = updateCorporateWeeklyTable;
+window.updateAssociateTable = updateAssociateTable;
+window.updateWeeklyTable = updateWeeklyTable;
+
+window.showSection = function(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.dashboard-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    const selectedSection = document.getElementById(sectionId);
+    if (selectedSection) {
+        selectedSection.classList.add('active');
+    }
+
+    // Update navigation
+    document.querySelectorAll('.nav-tabs a').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${sectionId}`) {
+            link.classList.add('active');
+        }
+    });
+
+    // If switching to analytics, update with current filters
+    if (sectionId === 'analytics') {
+        const associate = document.getElementById('associateFilter')?.value || 'all';
+        const month = document.getElementById('monthFilter')?.value || 'all';
+        updateAnalyticsPage(associate, month);
+    }
+
+    // If switching to performance, initialize the additional charts
+    if (sectionId === 'performance') {
+        // Use setTimeout to ensure the section is visible before initializing charts
+        setTimeout(() => {
+            initAdditionalCharts();
+        }, 100);
+    }
+};
+
+window.showTeamTargetsEditor = function() {
+    const modal = document.getElementById('teamTargetsModal');
+    if (!modal) return;
+    const inputs = modal.querySelectorAll('.month-target-input');
+    const targets = (dataManager.teamMonthlyTargets && dataManager.teamMonthlyTargets.length === 12) ?
+        dataManager.teamMonthlyTargets :
+        dataManager.getDefaultTeamMonthlyTargets();
+    inputs.forEach(input => {
+        const idx = parseInt(input.dataset.month, 10);
+        input.value = targets[idx] !== undefined ? targets[idx] : '';
+    });
+    modal.style.display = 'flex';
+};
+
+window.closeTeamTargetsEditor = function() {
+    const modal = document.getElementById('teamTargetsModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+};
+
+window.saveTeamMonthlyTargets = function() {
+    const modal = document.getElementById('teamTargetsModal');
+    if (!modal) return;
+    const inputs = Array.from(modal.querySelectorAll('.month-target-input'));
+    inputs.sort((a, b) => parseInt(a.dataset.month, 10) - parseInt(b.dataset.month, 10));
+    const values = inputs.map(i => parseFloat(i.value) || 0);
+    if (values.length !== 12) {
+        alert('Please provide 12 monthly values.');
+        return;
+    }
+
+    dataManager.teamMonthlyTargets = values;
+    try {
+        dataManager.saveData();
+    } catch (e) {
+        console.error('Error saving team targets:', e);
+    }
+
+    try { dataManager.calculateAggregates(); } catch (e) {}
+    try { loadCharts(); } catch (e) {}
+    try { applyFilters(); } catch (e) {}
+
+    closeTeamTargetsEditor();
+    showMessage('Team monthly targets saved', 'success');
+};
+
+window.downloadTemplate = function() {
+    const templateData = {
+        Sheet1: [
+            ['Month', 'Associate', 'Corporates_Onboarded', 'Corporates_Riding'],
+            [1, 'carol.ngugi@little.africa', 5, 2],
+            [1, 'christine.nyiva@little.africa', 3, 2],
+            [1, 'david.miiri@little.africa', 3, 3]
+        ],
+        Sheet2: [
+            ['Corporate', 'Associate', 'Revenue', 'WEEK'],
+            ['G4S KENYA LIMITED', 'mary.matevwa@little.africa', 79920, 'WEEK 1'],
+            ['OFFSHORE GLOBAL LOGISTICS LIMITED', 'mary.matevwa@little.africa', 1156, 'WEEK 1'],
+            ['G4S KENYA LIMITED', 'mary.matevwa@little.africa', 72230, 'WEEK 2']
+        ],
+        Sheet3: [
+            ['Associate', 'WEEK', 'Revenue'],
+            ['lillian.lugano@little.africa', 'WEEK 40', '865858.00'],
+            ['lillian.lugano@little.africa', 'WEEK 39', '735711.00'],
+            ['laura.kabaara@little.africa', 'WEEK 40', '724359.00']
+        ]
+    };
+
+    const wb = XLSX.utils.book_new();
+
+    const ws1 = XLSX.utils.aoa_to_sheet(templateData.Sheet1);
+    const ws2 = XLSX.utils.aoa_to_sheet(templateData.Sheet2);
+    const ws3 = XLSX.utils.aoa_to_sheet(templateData.Sheet3);
+
+    XLSX.utils.book_append_sheet(wb, ws1, "Sheet1");
+    XLSX.utils.book_append_sheet(wb, ws2, "Sheet2");
+    XLSX.utils.book_append_sheet(wb, ws3, "Sheet3");
+
+    XLSX.writeFile(wb, "sales_data_template.xlsx");
+};
+
+window.generateReport = function() {
+    const reportType = document.getElementById('reportType')?.value || 'performance';
+    let reportData = '';
+
+    switch (reportType) {
+        case 'performance':
+            reportData = generatePerformanceReport();
+            break;
+        case 'year_comparison':
+            reportData = generateYearComparisonReport();
+            break;
+        default:
+            reportData = generatePerformanceReport();
+    }
+
+    const blob = new Blob([reportData], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${reportType}_report_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
+function generatePerformanceReport() {
+    let csv = 'Performance Report\n\n';
+    csv += 'Associate,Total Revenue,Last Year Revenue,Growth %,Total Onboarded,Revenue Achievement %,Onboarded Achievement %,Status\n';
+
+    Object.values(dataManager.overviewData.associatePerformance).forEach(associate => {
+        const revenueAchievement = associate.revenueAchievement.reduce((a, b) => a + b, 0) / associate.revenueAchievement.length;
+        const onboardedAchievement = associate.onboardedAchievement.reduce((a, b) => a + b, 0) / associate.onboardedAchievement.length;
+        const lastYearTotal = Object.values(associate.lastYearWeeklyRevenue || {}).reduce((a, b) => a + b, 0);
+        const growth = lastYearTotal > 0 ? ((associate.totalRevenue - lastYearTotal) / lastYearTotal) * 100 : 0;
+        const status = revenueAchievement >= 100 ? 'On Target' : revenueAchievement >= 70 ? 'Needs Attention' : 'At Risk';
+
+        csv += `${associate.name},${associate.totalRevenue},${lastYearTotal},${growth.toFixed(2)}%,${associate.totalOnboarded},${revenueAchievement.toFixed(2)}%,${onboardedAchievement.toFixed(2)}%,${status}\n`;
+    });
+
+    return csv;
+}
+
+function generateYearComparisonReport() {
+    let csv = 'Year-over-Year Comparison Report\n\n';
+    csv += 'Month,Current Year Revenue,Last Year Revenue,Growth %,Current Year Onboarded,Last Year Onboarded\n';
+
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const currentYearMonthly = dataManager.calculateMonthlyActuals();
+    const lastYearMonthly = dataManager.overviewData.lastYearComparison?.monthly || Array(12).fill(0);
+
+    months.forEach((month, index) => {
+        const current = currentYearMonthly[index] || 0;
+        const last = lastYearMonthly[index] || 0;
+        const growth = last > 0 ? ((current - last) / last) * 100 : 0;
+
+        csv += `${month},${current},${last},${growth.toFixed(2)}%,N/A,N/A\n`;
+    });
+
+    csv += '\n';
+    csv += 'Overall,';
+    csv += `${dataManager.overviewData.totalRevenueActual},`;
+    csv += `${dataManager.overviewData.lastYearComparison?.total || 0},`;
+    const overallGrowth = dataManager.overviewData.lastYearComparison?.total > 0 ?
+        ((dataManager.overviewData.totalRevenueActual - dataManager.overviewData.lastYearComparison.total) / dataManager.overviewData.lastYearComparison.total) * 100 : 0;
+    csv += `${overallGrowth.toFixed(2)}%,N/A,N/A`;
+
+    return csv;
+}
+
+// Initialize app when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
