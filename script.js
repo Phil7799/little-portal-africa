@@ -809,6 +809,26 @@ function initDashboard() {
         });
     }
 
+    // Ensure teamMonthlyTargets are loaded properly
+    if (!dataManager.teamMonthlyTargets || dataManager.teamMonthlyTargets.length !== 12) {
+        // Use the hardcoded team targets
+        dataManager.teamMonthlyTargets = [
+            1108315.46,    // January
+            4070568.25,    // February
+            7384069.91,    // March
+            9342151.63,    // April
+            13879589.29,   // May
+            15015767.90,   // June
+            15552607.70,   // July
+            17834998.93,   // August
+            21805249.83,   // September
+            33336563.61,   // October
+            29531776.47,   // November
+            27138341.02    // December
+        ];
+        dataManager.saveData();
+    }
+
     // Load and display data
     loadOverviewData();
     loadCharts();
@@ -927,48 +947,75 @@ function applyFilters() {
 }
 
 function updateOverviewKPIs(associateFilter = 'all', monthFilter = 'all') {
+    // updateOverviewKPIs called
     let totalRevenueTarget = 0;
     let totalRevenueActual = 0;
     let totalOnboardedTarget = 0;
     let totalOnboardedActual = 0;
 
+    // Team monthly targets (provided by user)
+    const teamMonthlyTargets = [
+        1108315.46,    // January
+        4070568.25,    // February
+        7384069.91,    // March
+        9342151.63,    // April
+        13879589.29,   // May
+        15015767.90,   // June
+        15552607.70,   // July
+        17834998.93,   // August
+        21805249.83,   // September
+        33336563.61,   // October
+        29531776.47,   // November
+        27138341.02    // December
+    ];
+
     if (associateFilter === 'all') {
         if (monthFilter === 'all') {
-            totalRevenueTarget = dataManager.teamMonthlyTargets.reduce((a, b) => a + b, 0);
-            totalOnboardedTarget = 1008;
+            // All associates, all months - use teamMonthlyTargets total
+            totalRevenueTarget = teamMonthlyTargets.reduce((a, b) => a + b, 0);
+            totalOnboardedTarget = 1008; // 12 × 12 × 7 (12 months × 12 per month × 7 associates)
 
+            // Calculate actuals for all associates
             Object.entries(dataManager.overviewData.associatePerformance).forEach(([email, data]) => {
                 totalRevenueActual += data.totalRevenue;
                 totalOnboardedActual += data.totalOnboarded;
             });
         } else {
             const month = parseInt(monthFilter);
-            totalRevenueTarget = dataManager.teamMonthlyTargets[month] || 0;
-            totalOnboardedTarget = 84;
+            // Use teamMonthlyTargets for specific month
+            totalRevenueTarget = teamMonthlyTargets[month] || 0;
+            totalOnboardedTarget = 84; // 12 per associate × 7 associates
 
+            // Calculate actuals for all associates for specific month
             Object.entries(dataManager.overviewData.associatePerformance).forEach(([email, data]) => {
                 totalRevenueActual += data.monthlyRevenue[month] || 0;
                 totalOnboardedActual += data.monthlyOnboarded[month] || 0;
             });
         }
     } else {
+        // Individual associate selected
         const data = dataManager.overviewData.associatePerformance[associateFilter];
         if (data) {
             if (monthFilter === 'all') {
-                totalRevenueTarget = 28000000;
-                totalOnboardedTarget = 144;
+                // Individual associate, all months
+                // Calculate individual target by dividing team annual target by 7
+                totalRevenueTarget = teamMonthlyTargets.reduce((a, b) => a + b, 0) / 7;
+                totalOnboardedTarget = 144; // 12 per month × 12 months
                 totalRevenueActual = data.totalRevenue;
                 totalOnboardedActual = data.totalOnboarded;
             } else {
                 const month = parseInt(monthFilter);
-                totalRevenueTarget = dataManager.associateTargets[associateFilter].monthlyRevenue[month] || 0;
-                totalOnboardedTarget = 12;
+                // Individual associate, specific month
+                // Divide team monthly target by 7 for individual target
+                totalRevenueTarget = (teamMonthlyTargets[month] || 0) / 7;
+                totalOnboardedTarget = 12; // 12 per associate per month
                 totalRevenueActual = data.monthlyRevenue[month] || 0;
                 totalOnboardedActual = data.monthlyOnboarded[month] || 0;
             }
         }
     }
 
+    // Update KPI cards
     const totalRevenueTargetElement = document.getElementById('totalRevenueTarget');
     const totalRevenueActualElement = document.getElementById('totalRevenueActual');
     const revenueAchievementElement = document.getElementById('revenueAchievement');
@@ -1013,16 +1060,36 @@ function updateChartsWithFilters(associateFilter = 'all', monthFilter = 'all') {
 }
 
 function getFilteredMonthlyData(associateFilter = 'all', monthFilter = 'all') {
+    // Team monthly targets
+    const teamMonthlyTargets = [
+        1108315.46,    // January
+        4070568.25,    // February
+        7384069.91,    // March
+        9342151.63,    // April
+        13879589.29,   // May
+        15015767.90,   // June
+        15552607.70,   // July
+        17834998.93,   // August
+        21805249.83,   // September
+        33336563.61,   // October
+        29531776.47,   // November
+        27138341.02    // December
+    ];
+    
     if (associateFilter === 'all') {
         return {
-            targets: dataManager.teamMonthlyTargets || [],
+            // Use teamMonthlyTargets for team-level targets
+            targets: teamMonthlyTargets || [],
             actuals: dataManager.calculateMonthlyActuals(),
             lastYear: dataManager.overviewData.lastYearComparison?.monthly || Array(12).fill(0)
         };
     } else {
         const data = dataManager.overviewData.associatePerformance[associateFilter];
+        // Calculate individual monthly targets by dividing team targets by 7
+        const individualMonthlyTargets = teamMonthlyTargets.map(target => target / 7);
+        
         return {
-            targets: dataManager.associateTargets[associateFilter].monthlyRevenue,
+            targets: individualMonthlyTargets,
             actuals: data ? data.monthlyRevenue : Array(12).fill(0),
             lastYear: data ? Object.values(data.lastYearWeeklyRevenue || {})
                 .reduce((monthly, revenue, index) => {
@@ -1085,24 +1152,32 @@ function updateAnalyticsPage(associateFilter = 'all', monthFilter = 'all') {
 }
 
 function updateRevenueTargetsTable(associateFilter = 'all', monthFilter = 'all') {
+    console.log('>>> updateRevenueTargetsTable called <<<');
+    console.log('  Parameters: associate=%s, month=%s', associateFilter, monthFilter);
+    
     const tbody = document.getElementById('revenueTargetsTableBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('❌ ERROR: revenueTargetsTableBody element NOT FOUND in DOM');
+        return;
+    }
+    console.log('✓ Revenue targets table body element found');
 
     let html = '';
     
+    // Team collective targets
     const teamMonthlyTargets = [
-        1108315.46,
-        4070568.25,
-        7384069.91,
-        9342151.63,
-        13879589.29,
-        15015767.90,
-        15552607.70,
-        17834998.93,
-        21805249.83,
-        33336563.61,
-        29531776.47,
-        27138341.02
+        1108315.46,    // January
+        4070568.25,    // February
+        7384069.91,    // March
+        9342151.63,    // April
+        13879589.29,   // May
+        15015767.90,   // June
+        15552607.70,   // July
+        17834998.93,   // August
+        21805249.83,   // September
+        33336563.61,   // October
+        29531776.47,   // November
+        27138341.02    // December
     ];
 
     const months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -1111,46 +1186,101 @@ function updateRevenueTargetsTable(associateFilter = 'all', monthFilter = 'all')
 
     for (let month = 0; month < 12; month++) {
         if (monthFilter !== 'all' && parseInt(monthFilter) !== month) continue;
-
-        const revenueTarget = teamMonthlyTargets[month] || 0;
         
+        console.log('Processing month:', month);
+
+        // Determine target based on filter
+        let revenueTarget = 0;
+        let onboardingTarget = 0;
+        
+        if (associateFilter === 'all') {
+            // Team targets
+            revenueTarget = teamMonthlyTargets[month] || 0;
+            onboardingTarget = 84; // 12 per associate × 7 associates
+        } else {
+            // Individual targets (divide team target by 7)
+            revenueTarget = (teamMonthlyTargets[month] || 0) / 7;
+            onboardingTarget = 12; // 12 per associate per month
+        }
+        
+        // Calculate actuals
         let revenueActual = 0;
         let onboardingActual = 0;
         
-        Object.entries(dataManager.overviewData.associatePerformance || {}).forEach(([email, data]) => {
-            revenueActual += data.monthlyRevenue[month] || 0;
-            onboardingActual += data.monthlyOnboarded[month] || 0;
-        });
+        if (associateFilter === 'all') {
+            // All associates
+            Object.entries(dataManager.overviewData.associatePerformance || {}).forEach(([email, data]) => {
+                revenueActual += data.monthlyRevenue[month] || 0;
+                onboardingActual += data.monthlyOnboarded[month] || 0;
+            });
+        } else {
+            // Individual associate
+            const data = dataManager.overviewData.associatePerformance[associateFilter];
+            if (data) {
+                revenueActual = data.monthlyRevenue[month] || 0;
+                onboardingActual = data.monthlyOnboarded[month] || 0;
+            }
+        }
 
-        const lastYearRevenue = dataManager.overviewData.lastYearComparison?.monthly?.[month] || 0;
-        const onboardingTarget = 84;
+        // Last year revenue
+        let lastYearRevenue = 0;
+        if (associateFilter === 'all') {
+            lastYearRevenue = dataManager.overviewData.lastYearComparison?.monthly?.[month] || 0;
+        } else {
+            const data = dataManager.overviewData.associatePerformance[associateFilter];
+            if (data && data.lastYearWeeklyRevenue) {
+                Object.entries(data.lastYearWeeklyRevenue).forEach(([week, revenue]) => {
+                    const weekMonth = dataManager.getMonthFromWeek(parseInt(week));
+                    if (weekMonth === month + 1) {
+                        lastYearRevenue += revenue;
+                    }
+                });
+            }
+        }
+        
+        // Calculate growth
         const growth = lastYearRevenue > 0 ? ((revenueActual - lastYearRevenue) / lastYearRevenue) * 100 : 0;
+
+        // Calculate gaps
         const revenueGap = revenueTarget - revenueActual;
         const onboardingGap = onboardingTarget - onboardingActual;
 
+        // Format the revenue gap
         let revenueGapText = formatCurrency(Math.abs(revenueGap));
-        let revenueGapClass = 'trend-positive';
+        let revenueGapClass = 'trend-positive'; // green for surplus
 
         if (revenueGap > 0) {
             revenueGapText += ' deficit';
-            revenueGapClass = 'trend-negative';
+            revenueGapClass = 'trend-negative'; // red for deficit
         } else if (revenueGap < 0) {
             revenueGapText += ' surplus';
+        } else {
+            revenueGapText += '';
         }
 
+        // Format the onboarding gap
         let onboardingGapText = Math.abs(onboardingGap);
-        let onboardingGapClass = 'trend-positive';
+        let onboardingGapClass = 'trend-positive'; // green for surplus
 
         if (onboardingGap > 0) {
             onboardingGapText += ' deficit';
-            onboardingGapClass = 'trend-negative';
+            onboardingGapClass = 'trend-negative'; // red for deficit
         } else if (onboardingGap < 0) {
             onboardingGapText += ' surplus';
+        } else {
+            onboardingGapText += '';
+        }
+
+        // Add associate name to month label if individual filter
+        let monthLabel = months[month];
+        if (associateFilter !== 'all') {
+            const data = dataManager.overviewData.associatePerformance[associateFilter];
+            monthLabel += ` - ${data?.name || associateFilter}`;
         }
 
         html += `
             <tr>
-                <td>${months[month]}</td>
+                <td>${monthLabel}</td>
                 <td>${formatCurrency(revenueTarget)}</td>
                 <td>${formatCurrency(revenueActual)}</td>
                 <td>${formatCurrency(lastYearRevenue)}</td>
@@ -1170,6 +1300,9 @@ function updateRevenueTargetsTable(associateFilter = 'all', monthFilter = 'all')
     }
 
     tbody.innerHTML = html || '<tr><td colspan="9" class="text-center">No data available</td></tr>';
+    const rowCount = (html.match(/<tr>/g) || []).length;
+    console.log('✓ Revenue targets table populated with', rowCount, 'rows');
+    console.log('>>> updateRevenueTargetsTable() COMPLETED <<<\n');
 }
 
 function updateCorporateWeeklyTable(associateFilter = 'all', monthFilter = 'all') {
@@ -1850,4 +1983,5 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
     initializeApp();
+
 }
