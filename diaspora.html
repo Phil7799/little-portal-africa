@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diaspora Analytics | Little Africa</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="diaspora-container">
+        <!-- Header -->
+        <header class="diaspora-header">
+            <div class="header-left">
+                <h1>
+                    <i class="fas fa-globe-africa"></i> Diaspora Analytics
+                </h1>
+                <p id="currentDate" style="color:rgba(255,255,255,0.75); font-size:0.85em; margin-top:4px;"></p>
+            </div>
+            <div class="user-info">
+                <a href="index.html" class="btn-secondary">
+                    <i class="fas fa-home"></i> Portal Home
+                </a>
+                <a href="dashboard.html" class="btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> Main Dashboard
+                </a>
+            </div>
+        </header>
+
+        <!-- Filters (sticky, diaspora-only) -->
+        <div class="diaspora-filters" id="diasporaFilters">
+            <div class="filter-group">
+                <label for="dMonthFilter"><i class="fas fa-calendar"></i> Month</label>
+                <select id="dMonthFilter">
+                    <option value="all">All Months</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="dCountryFilter"><i class="fas fa-flag"></i> Country</label>
+                <select id="dCountryFilter">
+                    <option value="all">All Countries</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="dAssociateFilter"><i class="fas fa-user"></i> Associate</label>
+                <select id="dAssociateFilter">
+                    <option value="all">All Associates</option>
+                </select>
+            </div>
+            <button onclick="applyDiasporaFilters()" class="btn-primary" style="align-self: flex-end; width: auto;">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            <button onclick="resetDiasporaFilters()" class="btn-outline" style="align-self: flex-end; width: auto;">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="diaspora-content">
+            <!-- KPI Cards -->
+            <div class="diaspora-kpis" id="diasporaKpis">
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-title">Total Diaspora Revenue</div>
+                    <div class="stat-value" id="dTotalRevenue">Ksh 0</div>
+                    <div class="stat-subtitle">Across all countries</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="fas fa-building"></i></div>
+                    <div class="stat-title">New Corporates Onboarded</div>
+                    <div class="stat-value" id="dTotalOnboarded">0</div>
+                    <div class="stat-subtitle">Total new accounts</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-icon"><i class="fas fa-route"></i></div>
+                    <div class="stat-title">Total Trips</div>
+                    <div class="stat-value" id="dTotalTrips">0</div>
+                    <div class="stat-subtitle">Across all markets</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-title">Revenue from New Corporates</div>
+                    <div class="stat-value" id="dRevenueFromNew">Ksh 0</div>
+                    <div class="stat-subtitle">New corporate contribution</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon"><i class="fas fa-globe"></i></div>
+                    <div class="stat-title">Active Countries</div>
+                    <div class="stat-value" id="dActiveCountries">0</div>
+                    <div class="stat-subtitle">Markets with data</div>
+                </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Revenue by Country</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="dRevenueByCountryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Revenue Distribution by Country</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="dRevenuePieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Monthly Revenue Trend by Country</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="dMonthlyTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-users"></i> New Corporates Onboarded by Country</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="dOnboardedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trips Chart -->
+            <div class="chart-container" style="width:100%;">
+                <div class="chart-header">
+                    <h3><i class="fas fa-route"></i> Total Trips by Month &amp; Country</h3>
+                </div>
+                <div class="chart-wrapper" style="height:260px;">
+                    <canvas id="dTripsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Table -->
+            <div class="table-section">
+                <h3><i class="fas fa-table"></i> Detailed Performance by Country &amp; Month</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Country</th>
+                                <th>Associate</th>
+                                <th>New Corporates</th>
+                                <th>Total Revenue</th>
+                                <th>Revenue from New</th>
+                                <th>Total Trips</th>
+                                <th>Rev/Trip</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dDetailTable">
+                            <tr><td colspan="8" class="text-center">Upload data with Sheet4 to view diaspora analytics</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Country Summary Table -->
+            <div class="table-section">
+                <h3><i class="fas fa-flag"></i> Country Performance Summary</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Total Revenue</th>
+                                <th>Rev. from New Corporates</th>
+                                <th>New Corporates</th>
+                                <th>Total Trips</th>
+                                <th>Avg Rev/Trip</th>
+                                <th>New Corp Contribution</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dCountrySummaryTable">
+                            <tr><td colspan="7" class="text-center">No data available</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>Last Data Update: <span id="dLastUpdated">Never</span></p>
+            <p>© 2025 Little Africa Sales Portal | All Rights Reserved | <a href="index.html" style="color: white; text-decoration: underline;">Portal Home</a></p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    <script>
+    // ============ DIASPORA PAGE LOGIC ============
+    const COUNTRY_COLORS = {
+        'ETHIOPIA': { bg: '#F4A261', border: '#E76F51' },
+        'TANZANIA': { bg: '#2A9D8F', border: '#1a7a6e' },
+        'UGANDA':   { bg: '#1D3557', border: '#152842' },
+        'KENYA':    { bg: '#E63946', border: '#c01c29' },
+    };
+    const DEFAULT_COLORS = ['#9D4EDD','#F4A261','#2A9D8F','#1D3557','#E63946','#A8DADC','#FFD166'];
+
+    function getCountryColor(country, alpha) {
+        const c = COUNTRY_COLORS[country.toUpperCase()];
+        if (c) return alpha ? c.bg + 'CC' : c.bg;
+        return DEFAULT_COLORS[0];
+    }
+
+    const dCharts = {};
+
+    function initDiasporaPage() {
+        // Set date
+        const el = document.getElementById('currentDate');
+        if (el) el.textContent = new Date().toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Last update
+        const lu = document.getElementById('dLastUpdated');
+        if (lu) {
+            const lastUpdate = localStorage.getItem('last_data_update');
+            lu.textContent = lastUpdate ? new Date(lastUpdate).toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' }) : 'Never';
+        }
+
+        populateDiasporaFilters();
+        applyDiasporaFilters();
+    }
+
+    function getDiasporaData() {
+        return dataManager.diasporaData || [];
+    }
+
+    function populateDiasporaFilters() {
+        const data = getDiasporaData();
+        const months = [...new Set(data.map(d => d.monthName))];
+        const countries = [...new Set(data.map(d => d.country))].sort();
+        const associates = [...new Set(data.map(d => d.associateName).filter(a => a && a !== 'Unidentified'))].sort();
+
+        const monthOrder = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+
+        const dMonthFilter = document.getElementById('dMonthFilter');
+        if (dMonthFilter) {
+            dMonthFilter.innerHTML = '<option value="all">All Months</option>';
+            months.forEach(m => { dMonthFilter.innerHTML += `<option value="${m}">${m}</option>`; });
+        }
+        const dCountryFilter = document.getElementById('dCountryFilter');
+        if (dCountryFilter) {
+            dCountryFilter.innerHTML = '<option value="all">All Countries</option>';
+            countries.forEach(c => { dCountryFilter.innerHTML += `<option value="${c}">${c}</option>`; });
+        }
+        const dAssociateFilter = document.getElementById('dAssociateFilter');
+        if (dAssociateFilter) {
+            dAssociateFilter.innerHTML = '<option value="all">All Associates</option>';
+            associates.forEach(a => { dAssociateFilter.innerHTML += `<option value="${a}">${a}</option>`; });
+        }
+    }
+
+    function getFilteredDiasporaData() {
+        let data = getDiasporaData();
+        const month = document.getElementById('dMonthFilter')?.value || 'all';
+        const country = document.getElementById('dCountryFilter')?.value || 'all';
+        const associate = document.getElementById('dAssociateFilter')?.value || 'all';
+        if (month !== 'all') data = data.filter(d => d.monthName === month);
+        if (country !== 'all') data = data.filter(d => d.country === country);
+        if (associate !== 'all') data = data.filter(d => d.associateName === associate);
+        return data;
+    }
+
+    function applyDiasporaFilters() {
+        const data = getFilteredDiasporaData();
+        updateDiasporaKPIs(data);
+        updateDiasporaCharts(data);
+        updateDiasporaDetailTable(data);
+        updateDiasporaCountrySummary(data);
+    }
+
+    function resetDiasporaFilters() {
+        document.getElementById('dMonthFilter').value = 'all';
+        document.getElementById('dCountryFilter').value = 'all';
+        document.getElementById('dAssociateFilter').value = 'all';
+        applyDiasporaFilters();
+    }
+
+    function fmtCurrency(n) {
+        if (isNaN(n) || n === null) return 'Ksh 0';
+        return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+    }
+    function fmtNum(n) {
+        if (!n) return '0';
+        if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return Math.round(n).toString();
+    }
+
+    function updateDiasporaKPIs(data) {
+        const totalRevenue = data.reduce((s, d) => s + d.totalRevenue, 0);
+        const totalOnboarded = data.reduce((s, d) => s + d.newCorporatesOnboarded, 0);
+        const totalTrips = data.reduce((s, d) => s + d.totalTrips, 0);
+        const revenueFromNew = data.reduce((s, d) => s + d.revenueFromNewCorporates, 0);
+        const activeCountries = new Set(data.map(d => d.country)).size;
+
+        document.getElementById('dTotalRevenue').textContent = fmtCurrency(totalRevenue);
+        document.getElementById('dTotalOnboarded').textContent = totalOnboarded;
+        document.getElementById('dTotalTrips').textContent = totalTrips.toLocaleString();
+        document.getElementById('dRevenueFromNew').textContent = fmtCurrency(revenueFromNew);
+        document.getElementById('dActiveCountries').textContent = activeCountries;
+    }
+
+    function updateDiasporaCharts(data) {
+        const countries = [...new Set(data.map(d => d.country))].sort();
+        const monthOrder = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const months = [...new Set(data.map(d => d.monthName))].sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+
+        // Revenue by Country (bar)
+        const revenueByCountry = countries.map(c => data.filter(d => d.country === c).reduce((s, d) => s + d.totalRevenue, 0));
+        updateBarChart('dRevenueByCountryChart', countries, [
+            { label: 'Total Revenue', data: revenueByCountry, backgroundColor: countries.map(c => getCountryColor(c)), borderColor: countries.map(c => COUNTRY_COLORS[c.toUpperCase()]?.border || '#999'), borderWidth: 1 }
+        ], v => fmtCurrency(v));
+
+        // Revenue Pie
+        updatePieChart('dRevenuePieChart', countries, revenueByCountry, countries.map(c => getCountryColor(c)));
+
+        // Monthly Trend by Country (line)
+        const datasets = countries.map((country, i) => {
+            const colorObj = COUNTRY_COLORS[country.toUpperCase()];
+            const color = colorObj ? colorObj.bg : DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+            return {
+                label: country,
+                data: months.map(m => data.filter(d => d.country === country && d.monthName === m).reduce((s, d) => s + d.totalRevenue, 0)),
+                borderColor: color,
+                backgroundColor: color + '22',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+                pointRadius: 5
+            };
+        });
+        updateLineChart('dMonthlyTrendChart', months, datasets, v => fmtCurrency(v));
+
+        // Onboarded by Country (bar)
+        const onboardedByCountry = countries.map(c => data.filter(d => d.country === c).reduce((s, d) => s + d.newCorporatesOnboarded, 0));
+        updateBarChart('dOnboardedChart', countries, [
+            { label: 'New Corporates Onboarded', data: onboardedByCountry, backgroundColor: countries.map(c => getCountryColor(c)), borderColor: countries.map(c => COUNTRY_COLORS[c.toUpperCase()]?.border || '#999'), borderWidth: 1 }
+        ], v => v);
+
+        // Trips by Month & Country (stacked bar)
+        const tripsDatasets = countries.map((country, i) => {
+            const colorObj = COUNTRY_COLORS[country.toUpperCase()];
+            const color = colorObj ? colorObj.bg : DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+            return {
+                label: country,
+                data: months.map(m => data.filter(d => d.country === country && d.monthName === m).reduce((s, d) => s + d.totalTrips, 0)),
+                backgroundColor: color,
+                borderColor: colorObj?.border || '#999',
+                borderWidth: 1,
+                stack: 'trips'
+            };
+        });
+        updateStackedBarChart('dTripsChart', months, tripsDatasets, v => v.toLocaleString());
+    }
+
+    function destroyChart(id) {
+        if (dCharts[id]) { dCharts[id].destroy(); delete dCharts[id]; }
+    }
+
+    function updateBarChart(id, labels, datasets, tickCallback) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        destroyChart(id);
+        dCharts[id] = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: datasets.length > 1 } },
+                scales: { y: { beginAtZero: true, ticks: { callback: tickCallback } } }
+            }
+        });
+    }
+
+    function updatePieChart(id, labels, data, backgroundColors) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        destroyChart(id);
+        dCharts[id] = new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data, backgroundColor: backgroundColors, borderWidth: 2, borderColor: 'white' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtCurrency(ctx.raw)} (${((ctx.raw / data.reduce((a,b)=>a+b,0))*100).toFixed(1)}%)` } }
+                }
+            }
+        });
+    }
+
+    function updateLineChart(id, labels, datasets, tickCallback) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        destroyChart(id);
+        dCharts[id] = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true, ticks: { callback: tickCallback } } }
+            }
+        });
+    }
+
+    function updateStackedBarChart(id, labels, datasets, tickCallback) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        destroyChart(id);
+        dCharts[id] = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true, ticks: { callback: tickCallback } }
+                }
+            }
+        });
+    }
+
+    function getCountryBadgeClass(country) {
+        const map = { 'ETHIOPIA': 'ethiopia', 'TANZANIA': 'tanzania', 'UGANDA': 'uganda' };
+        return map[country.toUpperCase()] || 'default';
+    }
+
+    function updateDiasporaDetailTable(data) {
+        const tbody = document.getElementById('dDetailTable');
+        if (!tbody) return;
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">No data available for the selected filters</td></tr>';
+            return;
+        }
+        const monthOrder = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const sorted = [...data].sort((a, b) => {
+            const mi = monthOrder.indexOf(a.monthName) - monthOrder.indexOf(b.monthName);
+            if (mi !== 0) return mi;
+            return a.country.localeCompare(b.country);
+        });
+        tbody.innerHTML = sorted.map(d => {
+            const revPerTrip = d.totalTrips > 0 ? d.totalRevenue / d.totalTrips : 0;
+            return `<tr>
+                <td>${d.monthName}</td>
+                <td><span class="country-badge ${getCountryBadgeClass(d.country)}">${d.country}</span></td>
+                <td>${d.associateName}</td>
+                <td>${d.newCorporatesOnboarded}</td>
+                <td>${fmtCurrency(d.totalRevenue)}</td>
+                <td>${fmtCurrency(d.revenueFromNewCorporates)}</td>
+                <td>${d.totalTrips.toLocaleString()}</td>
+                <td>${fmtCurrency(revPerTrip)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function updateDiasporaCountrySummary(data) {
+        const tbody = document.getElementById('dCountrySummaryTable');
+        if (!tbody) return;
+        const countries = [...new Set(data.map(d => d.country))].sort();
+        if (!countries.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No data available</td></tr>';
+            return;
+        }
+        tbody.innerHTML = countries.map(country => {
+            const rows = data.filter(d => d.country === country);
+            const totalRevenue = rows.reduce((s, d) => s + d.totalRevenue, 0);
+            const revenueFromNew = rows.reduce((s, d) => s + d.revenueFromNewCorporates, 0);
+            const newCorporates = rows.reduce((s, d) => s + d.newCorporatesOnboarded, 0);
+            const totalTrips = rows.reduce((s, d) => s + d.totalTrips, 0);
+            const avgRevPerTrip = totalTrips > 0 ? totalRevenue / totalTrips : 0;
+            const newContrib = totalRevenue > 0 ? (revenueFromNew / totalRevenue) * 100 : 0;
+            return `<tr>
+                <td><span class="country-badge ${getCountryBadgeClass(country)}">${country}</span></td>
+                <td>${fmtCurrency(totalRevenue)}</td>
+                <td>${fmtCurrency(revenueFromNew)}</td>
+                <td>${newCorporates}</td>
+                <td>${totalTrips.toLocaleString()}</td>
+                <td>${fmtCurrency(avgRevPerTrip)}</td>
+                <td class="${newContrib > 20 ? 'trend-positive' : 'trend-negative'}">${newContrib.toFixed(1)}%</td>
+            </tr>`;
+        }).join('');
+    }
+
+    window.applyDiasporaFilters = applyDiasporaFilters;
+    window.resetDiasporaFilters = resetDiasporaFilters;
+
+    // Initialize on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDiasporaPage);
+    } else {
+        initDiasporaPage();
+    }
+    </script>
+</body>
+</html>
