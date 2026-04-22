@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Data | Little Africa</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="upload-container">
+        <header class="upload-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="" alt="" class="company-logo-small">
+                <h1>
+                    <i class="fas fa-upload"></i> Data Upload Portal
+                </h1>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <a href="index.html" class="btn-secondary">
+                    <i class="fas fa-home"></i> Portal Home
+                </a>
+                <a href="dashboard.html" class="btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> View Dashboard
+                </a>
+            </div>
+        </header>
+
+        <main class="upload-main">
+            <div class="upload-card">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Upload Sales Data</h3>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-excel"></i>
+                    </div>
+                    <h4>Drag & Drop your Excel file here</h4>
+                    <p>or click to browse files</p>
+                    <p style="color: #64748B; margin-top: 10px; font-size: 0.9em;">
+                        Supported formats: .xlsx, .xls, .csv
+                    </p>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="file-input">
+                </div>
+
+                <div id="selectedFile" style="margin-top: 20px;">
+                    <p><strong>Selected File:</strong> <span id="fileName">No file selected</span></p>
+                </div>
+
+                <div id="uploadPreview" class="upload-preview">
+                    <!-- File preview will appear here -->
+                </div>
+
+                <form id="uploadForm" style="margin-top: 30px;">
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label for="uploadType"><i class="fas fa-cogs"></i> Update Type</label>
+                            <select id="uploadType">
+                                <option value="append">Append to Existing Data</option>
+                                <option value="replace">Replace All Data</option>
+                                <option value="update">Update Specific Period</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label><i class="fas fa-calendar"></i> Data Period</label>
+                            <input type="month" id="dataMonth" value="2025-01">
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group" style="margin: 20px 0;">
+                        <input type="checkbox" id="createBackup" checked>
+                        <label for="createBackup">Create backup before upload</label>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="uploadBtn" style="width: 200px;" disabled>
+                        <i class="fas fa-upload"></i> Upload Data
+                    </button>
+                </form>
+
+                <div id="message" class="message" style="margin-top: 20px;"></div>
+
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar"></div>
+                    </div>
+                    <p id="progressText">Uploading...</p>
+                </div>
+            </div>
+
+            <div class="upload-card">
+                <h3><i class="fas fa-info-circle"></i> Upload Instructions</h3>
+                <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                    <h4>Excel File Requirements (3 Sheets Required):</h4>
+                    <ol style="margin-top: 10px;">
+                        <li><strong>Sheet1 - Corporate Onboarding:</strong>
+                            <ul>
+                                <li>Column A: Month Number (1-12)</li>
+                                <li>Column B: Associate Email (must end with @little.africa)</li>
+                                <li>Column C: Corporates Onboarded (number)</li>
+                                <li>Column D: Corporates Riding (number)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Sheet2 - Weekly Performance (Current Year):</strong>
+                            <ul>
+                                <li>Column A: Corporate Name</li>
+                                <li>Column B: Associate Email</li>
+                                <li>Column C: Revenue Amount</li>
+                                <li>Column D: Week (format: WEEK X)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Sheet3 - Last Year Performance:</strong>
+                            <ul>
+                                <li>Column A: Associate Email</li>
+                                <li>Column B: Week (format: WEEK X)</li>
+                                <li>Column C: Revenue Amount</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div style="margin-top: 20px; padding: 15px; background: #EFF6FF; border-radius: 6px;">
+                        <h4><i class="fas fa-download"></i> Download Template</h4>
+                        <p>Use our template to ensure proper formatting for all 3 sheets:</p>
+                        <button onclick="downloadTemplate()" class="btn-secondary">
+                            <i class="fas fa-file-download"></i> Download Excel Template
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="upload-card">
+                <h3><i class="fas fa-history"></i> Upload History</h3>
+                <div class="table-container" style="margin-top: 15px;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>File Name</th>
+                                <th>Uploaded By</th>
+                                <th>Records Added</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uploadHistory">
+                            <!-- History will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>© 2025 Little Africa Sales Portal | All Rights Reserved | <a href="index.html" style="color: white; text-decoration: underline;">Portal Home</a></p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
